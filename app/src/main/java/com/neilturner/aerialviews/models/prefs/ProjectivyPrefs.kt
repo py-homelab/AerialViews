@@ -118,3 +118,12 @@ object ProjectivyLocalMediaPrefs : KotprefModel(), LocalProviderPreferences {
 
     override fun settingsHash(): String = settingsHashWithPrefix("projectivy_local_videos_", "projectivy_local_media_")
 }
+
+// Shares the server, login and album selection configured for the screensaver's Immich source
+object ProjectivyImmichPrefs : ImmichProviderPrefs by ImmichMediaPrefs {
+    // Wallpapers are returned to Projectivy in a single binder transaction (1MB limit)
+    const val MAX_ITEMS = 200
+
+    override val enabled: Boolean
+        get() = ProjectivyPrefs.sharedProviders.contains("IMMICH")
+}

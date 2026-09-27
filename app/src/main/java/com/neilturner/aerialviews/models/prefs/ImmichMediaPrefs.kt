@@ -34,10 +34,19 @@ interface ImmichRepositoryPrefs {
     val mediaType: ProviderMediaType?
 }
 
-object ImmichMediaPrefs : KotprefModel(), ImmichUrlPrefs, ImmichAssetPrefs, ImmichRepositoryPrefs {
+interface ImmichProviderPrefs :
+    ImmichUrlPrefs,
+    ImmichAssetPrefs,
+    ImmichRepositoryPrefs {
+    val enabled: Boolean
+
+    fun settingsHash(): String
+}
+
+object ImmichMediaPrefs : KotprefModel(), ImmichProviderPrefs {
     override val kotprefName = "${context.packageName}_preferences"
 
-    var enabled by booleanPref(false, "immich_media_enabled")
+    override var enabled by booleanPref(false, "immich_media_enabled")
     val mediaSelection by stringSetPref("immich_media_selection") {
         MediaSelection.defaultSelection
     }
@@ -61,5 +70,5 @@ object ImmichMediaPrefs : KotprefModel(), ImmichUrlPrefs, ImmichAssetPrefs, Immi
     override var imageType by nullableEnumValuePref(ImmichImageType.PREVIEW, "immich_media_image_type")
     override var videoType by nullableEnumValuePref(ImmichVideoType.TRANSCODED, "immich_media_video_type")
 
-    fun settingsHash(): String = settingsHashWithPrefix("immich_media_")
+    override fun settingsHash(): String = settingsHashWithPrefix("immich_media_")
 }

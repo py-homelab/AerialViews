@@ -21,6 +21,7 @@ internal class ImmichUrlBuilderTest {
         videoType: ImmichVideoType? = null,
         imageType: ImmichImageType? = null,
         isV3: Boolean = false,
+        urlApiKey: String? = null,
     ): ImmichUrlBuilder {
         val prefs = mockk<ImmichUrlPrefs>()
         every { prefs.authType } returns authType
@@ -35,7 +36,7 @@ internal class ImmichUrlBuilderTest {
             every { mockUri.toString() } returns urlString
             mockUri
         }
-        return ImmichUrlBuilder(server, prefs, isV3 = isV3, uriFactory = uriFactory)
+        return ImmichUrlBuilder(server, prefs, isV3 = isV3, urlApiKey = urlApiKey, uriFactory = uriFactory)
     }
 
     @Test
@@ -194,5 +195,58 @@ internal class ImmichUrlBuilderTest {
         builder.setServerV3(true)
         val afterResult = builder.getAssetUri("assetA", isVideo = true)
         assertEquals("$server/api/assets/assetA/original?key=12345", afterResult.toString())
+    }
+
+    @Test
+    fun `api key image preview with key in url`() {
+        val builder =
+            createBuilder(
+                authType = ImmichAuthType.API_KEY,
+                imageType = ImmichImageType.PREVIEW,
+                urlApiKey = "abc123",
+            )
+
+        val result = builder.getAssetUri("asset1", isVideo = false)
+        assertEquals("$server/api/assets/asset1/thumbnail?size=preview&apiKey=abc123", result.toString())
+    }
+
+    @Test
+    fun `api key video transcoded with key in url is encoded`() {
+        val builder =
+            createBuilder(
+                authType = ImmichAuthType.API_KEY,
+                videoType = ImmichVideoType.TRANSCODED,
+                urlApiKey = " a+b/c ",
+            )
+
+        val result = builder.getAssetUri("asset1", isVideo = true)
+        assertEquals("$server/api/assets/asset1/video/playback?apiKey=a%2Bb%2Fc", result.toString())
+    }
+
+    @Test
+    fun `api key url unchanged without url key`() {
+        val builder =
+            createBuilder(
+                authType = ImmichAuthType.API_KEY,
+                imageType = ImmichImageType.ORIGINAL,
+                urlApiKey = "",
+            )
+
+        val result = builder.getAssetUri("asset1", isVideo = false)
+        assertEquals("$server/api/assets/asset1/original", result.toString())
+    }
+
+    @Test
+    fun `shared link ignores url api key`() {
+        val builder =
+            createBuilder(
+                authType = ImmichAuthType.SHARED_LINK,
+                pathName = "share/12345",
+                imageType = ImmichImageType.PREVIEW,
+                urlApiKey = "abc123",
+            )
+
+        val result = builder.getAssetUri("asset1", isVideo = false)
+        assertEquals("$server/api/assets/asset1/thumbnail?size=preview&key=12345", result.toString())
     }
 }

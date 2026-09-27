@@ -456,6 +456,8 @@
     <string name="projectivy_amazon_videos_options_title">Amazon video options</string>
     <string name="projectivy_comm1_videos_options_title">Jetson Creative video options</string>
     <string name="projectivy_comm2_videos_options_title">Robin Fourcade video options</string>
+    <string name="projectivy_immich_options_title">Immich options</string>
+    <string name="projectivy_immich_options_summary">Uses the server, login and albums set up in Sources &gt; Immich. With API key login, the key is included in the links given to Projectivy</string>
 
     <!-- Main / Settings / Overlays -->
     <string name="appearance_top_row_title">Top Row</string>

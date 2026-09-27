@@ -8,8 +8,10 @@ import com.neilturner.aerialviews.models.prefs.ProjectivyAmazonPrefs
 import com.neilturner.aerialviews.models.prefs.ProjectivyApplePrefs
 import com.neilturner.aerialviews.models.prefs.ProjectivyComm1Prefs
 import com.neilturner.aerialviews.models.prefs.ProjectivyComm2Prefs
+import com.neilturner.aerialviews.models.prefs.ProjectivyImmichPrefs
 import com.neilturner.aerialviews.models.prefs.ProjectivyLocalMediaPrefs
 import com.neilturner.aerialviews.models.prefs.ProjectivyPrefs
+import com.neilturner.aerialviews.models.videos.AerialMedia
 import com.neilturner.aerialviews.providers.AmazonMediaProvider
 import com.neilturner.aerialviews.providers.AppleMediaProvider
 import com.neilturner.aerialviews.providers.Comm1MediaProvider
@@ -17,6 +19,7 @@ import com.neilturner.aerialviews.providers.Comm2MediaProvider
 import com.neilturner.aerialviews.providers.LocalMediaProvider
 import com.neilturner.aerialviews.providers.MediaProvider
 import com.neilturner.aerialviews.providers.ProviderFetchResult
+import com.neilturner.aerialviews.providers.immich.ImmichMediaProvider
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import tv.projectivy.plugin.wallpaperprovider.api.Event
@@ -45,7 +48,7 @@ class WallpaperProviderService : Service() {
                                     .flatMap { provider ->
                                         try {
                                             when (val result = provider.fetch()) {
-                                                is ProviderFetchResult.Success -> result.media
+                                                is ProviderFetchResult.Success -> limitMedia(provider, result.media)
                                                 is ProviderFetchResult.Error -> emptyList()
                                             }
                                         } catch (ex: Exception) {
@@ -95,5 +98,18 @@ class WallpaperProviderService : Service() {
             add(Comm2MediaProvider(applicationContext, ProjectivyComm2Prefs))
             add(AmazonMediaProvider(applicationContext, ProjectivyAmazonPrefs))
             add(LocalMediaProvider(applicationContext, ProjectivyLocalMediaPrefs))
+            // Projectivy downloads the media itself, so the API key has to be part of the URL
+            add(ImmichMediaProvider(applicationContext, ProjectivyImmichPrefs, embedApiKeyInUrl = true))
         }
+
+    private fun limitMedia(
+        provider: MediaProvider,
+        media: List<AerialMedia>,
+    ): List<AerialMedia> {
+        if (provider !is ImmichMediaProvider || media.size <= ProjectivyImmichPrefs.MAX_ITEMS) {
+            return media
+        }
+        val candidates = if (ProjectivyPrefs.shuffleVideos) media.shuffled() else media
+        return candidates.take(ProjectivyImmichPrefs.MAX_ITEMS)
+    }
 }

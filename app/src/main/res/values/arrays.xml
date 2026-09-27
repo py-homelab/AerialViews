@@ -1472,11 +1472,13 @@
     <string name="projectivy_amazon">Amazon Videos</string>
     <string name="projectivy_jetson">Jetson Creative Videos</string>
     <string name="projectivy_robin">Robin Fourcade Videos</string>
+    <string name="projectivy_immich" translatable="false">Immich</string>
     <string-array name="projectivy_shared_providers_entries" translatable="false">
         <item>@string/projectivy_apple</item>
         <item>@string/projectivy_amazon</item>
         <item>@string/projectivy_jetson</item>
         <item>@string/projectivy_robin</item>
+        <item>@string/projectivy_immich</item>
         <!--    <item>Local or USB storage</item>-->
     </string-array>
     <string-array name="projectivy_shared_providers_values" translatable="false">
@@ -1484,6 +1486,7 @@
         <item>AMAZON</item>
         <item>COMM1</item>
         <item>COMM2</item>
+        <item>IMMICH</item>
         <!--    <item>LOCAL</item>-->
     </string-array>
     <string-array name="projectivy_shared_providers_default" translatable="false">

@@ -6,6 +6,7 @@ import com.neilturner.aerialviews.models.enums.ImmichAuthType
 import com.neilturner.aerialviews.models.enums.ImmichImageType
 import com.neilturner.aerialviews.models.enums.ImmichVideoType
 import com.neilturner.aerialviews.models.prefs.ImmichUrlPrefs
+import java.net.URLEncoder
 
 class ImmichUrlBuilder(
     private val server: String,
@@ -13,6 +14,11 @@ class ImmichUrlBuilder(
     private var resolvedSharedKey: String? = null,
     /** Set to true once the connected server is confirmed to be Immich v3+. */
     private var isV3: Boolean = false,
+    /**
+     * When set, API key URLs carry the key as an `apiKey` query parameter. Needed when the
+     * URL is fetched by another app (eg. Projectivy) that cannot send the `X-API-Key` header.
+     */
+    private val urlApiKey: String? = null,
     private val uriFactory: (String) -> Uri = { it.toUri() },
 ) {
     fun setResolvedSharedKey(key: String?) {
@@ -54,20 +60,22 @@ class ImmichUrlBuilder(
                 // "fullsize" will use fullsize or reencoded pic as configured within Immich
                 // "preview" will use preview-reencoded pic as configured within Immich, 1440p by default
                 ImmichAuthType.API_KEY -> {
-                    if (isVideo) {
-                        if (prefs.videoType == ImmichVideoType.TRANSCODED) {
-                            "$server/api/assets/$id/video/playback"
+                    val base =
+                        if (isVideo) {
+                            if (prefs.videoType == ImmichVideoType.TRANSCODED) {
+                                "$server/api/assets/$id/video/playback"
+                            } else {
+                                "$server/api/assets/$id/original"
+                            }
                         } else {
-                            "$server/api/assets/$id/original"
+                            if (prefs.imageType == ImmichImageType.ORIGINAL) {
+                                "$server/api/assets/$id/original"
+                            } else {
+                                val size = if (prefs.imageType == ImmichImageType.FULLSIZE) "fullsize" else "preview"
+                                "$server/api/assets/$id/thumbnail?size=$size"
+                            }
                         }
-                    } else {
-                        if (prefs.imageType == ImmichImageType.ORIGINAL) {
-                            "$server/api/assets/$id/original"
-                        } else {
-                            val size = if (prefs.imageType == ImmichImageType.FULLSIZE) "fullsize" else "preview"
-                            "$server/api/assets/$id/thumbnail?size=$size"
-                        }
-                    }
+                    withApiKey(base)
                 }
 
                 null -> {
@@ -75,5 +83,11 @@ class ImmichUrlBuilder(
                 }
             }
         return uriFactory(url)
+    }
+
+    private fun withApiKey(url: String): String {
+        val key = urlApiKey?.trim()?.takeIf { it.isNotEmpty() } ?: return url
+        val separator = if (url.contains("?")) "&" else "?"
+        return "$url${separator}apiKey=${URLEncoder.encode(key, "UTF-8")}"
     }
 }

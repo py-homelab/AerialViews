@@ -4,7 +4,7 @@ import android.content.Context
 import com.neilturner.aerialviews.data.network.UrlParser
 import com.neilturner.aerialviews.models.enums.ImmichAuthType
 import com.neilturner.aerialviews.models.enums.ProviderSourceType
-import com.neilturner.aerialviews.models.prefs.ImmichMediaPrefs
+import com.neilturner.aerialviews.models.prefs.ImmichProviderPrefs
 import com.neilturner.aerialviews.models.videos.AerialMedia
 import com.neilturner.aerialviews.providers.MediaProvider
 import com.neilturner.aerialviews.providers.ProviderFetchResult
@@ -16,7 +16,8 @@ import java.net.UnknownHostException
 
 class ImmichMediaProvider(
     context: Context,
-    private val prefs: ImmichMediaPrefs,
+    private val prefs: ImmichProviderPrefs,
+    private val embedApiKeyInUrl: Boolean = false,
 ) : MediaProvider(context) {
     override val type = ProviderSourceType.REMOTE
     override val enabled: Boolean
@@ -25,7 +26,9 @@ class ImmichMediaProvider(
     override fun settingsHash(): String = prefs.settingsHash()
 
     private val serverUrl by lazy { UrlParser.parseServerUrl(prefs.url) }
-    private val urlBuilder by lazy { ImmichUrlBuilder(serverUrl, prefs) }
+    private val urlBuilder by lazy {
+        ImmichUrlBuilder(serverUrl, prefs, urlApiKey = if (embedApiKeyInUrl) prefs.apiKey else null)
+    }
     private val repository by lazy { ImmichRepository(prefs, urlBuilder) }
     private val mapper by lazy { ImmichAssetMapper(prefs, urlBuilder) }
 
