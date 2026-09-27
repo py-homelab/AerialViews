@@ -148,6 +148,12 @@ android {
             signingConfig = signingConfigs.getByName("release")
             dimension = "version"
         }
+        // Self-built fork: no Firebase, installs alongside the store version
+        create("homelab") {
+            signingConfig = signingConfigs.getByName("release")
+            dimension = "version"
+            applicationIdSuffix = ".homelab"
+        }
     }
 
     // Using this method https://stackoverflow.com/a/30548238/247257
@@ -158,6 +164,7 @@ android {
         getByName("googleplaybeta").kotlin.directories.add("src/common/java")
         getByName("amazon").kotlin.directories.add("src/common/java")
         getByName("fdroid").kotlin.directories.add("src/fdroid/java")
+        getByName("homelab").kotlin.directories.add("src/fdroid/java")
     }
 
     compileOptions {
@@ -217,6 +224,13 @@ tasks.withType<Test>().configureEach {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         events("started", "skipped", "passed", "failed")
         showStandardStreams = true
+    }
+}
+
+// The homelab flavor has no Firebase project, so skip the Firebase build steps
+tasks.configureEach {
+    if (name.contains("Homelab") && (name.endsWith("GoogleServices") || name.contains("Crashlytics"))) {
+        enabled = false
     }
 }
 
