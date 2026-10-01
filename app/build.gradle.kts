@@ -1,4 +1,5 @@
 import java.io.FileInputStream
+import com.google.firebase.perf.plugin.FirebasePerfExtension
 import java.util.Properties
 
 plugins {
@@ -153,6 +154,8 @@ android {
             signingConfig = signingConfigs.getByName("release")
             dimension = "version"
             applicationIdSuffix = ".homelab"
+            // Firebase libraries are not included, so the perf plugin must not rewrite network calls
+            (this as ExtensionAware).extensions.getByType(FirebasePerfExtension::class.java).setInstrumentationEnabled(false)
         }
     }
 

@@ -23,7 +23,7 @@ class AerialApp : Application() {
             LogcatCapture.start(applicationContext)
         }
 
-        if (BuildConfig.DEBUG || BuildConfig.FLAVOR.contains("beta", false)) {
+        if (BuildConfig.DEBUG || BuildConfig.FLAVOR.contains("beta", false) || BuildConfig.FLAVOR == "homelab") {
             Timber.plant(Timber.DebugTree())
         }
 
